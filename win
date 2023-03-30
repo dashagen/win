@@ -1,0 +1,89 @@
+#!/usr/bin/python3
+
+import sys
+import pandas as pd
+import getopt
+
+
+########################
+# Do transformation
+########################
+
+def dotrans(s, trans):
+
+    tran_type = trans[0]
+    tran_win  = int(trans[1:])
+
+    if tran_type == 'a':
+        return(s.rolling(tran_win).mean())
+    elif tran_type == 'd':
+        return(s.diff(tran_win))
+    elif tran_type == 'f':
+        return(s.shift(-tran_win))
+    elif tran_type == 'r':
+        return(s / s.shift(tran_win))
+    elif tran_type == 'g':
+        return(s / s.shift(tran_win)-1)
+    else:
+        return(s)
+
+
+
+########################
+# MAIN PROGRAM
+########################
+if __name__ == "__main__":
+
+    # Help line
+    help_line = sys.argv[0] + " -k <col1,col2,..>  -t <trans1, trans2, ..> [-g]"
+
+    #  Parse inputs
+    trans = None
+    tran_cols = None
+    hasHeader = False
+
+    argv = sys.argv[1:]
+
+    try:
+        opts, args = getopt.getopt(argv,"hgk:t:")
+    except getopt.GetoptError:
+        print(help_line)
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt == '-h':
+            print(help_line)
+            sys.exit()
+        elif opt in ("-k"):
+            tran_cols = arg
+        elif opt in ("-t"):
+            trans = arg
+        elif opt in ("-g"):
+            hasHeader = True
+    
+    if ( not(tran_cols) or not(trans)):
+        print('must have -k and -t options')
+        print(help_line)
+        sys.exit(2)
+
+    col_list   = list(map(int, tran_cols.split(',')))    
+    trans_list = trans.split(',')    
+
+    if ( len(col_list) != len(trans_list)):
+        print('Number of -k arguments must match that of -t arguments')
+        sys.exit(2)
+
+
+    #Read data
+    if (hasHeader):
+        df = pd.read_csv(sys.stdin, sep='\s+', header=0)
+    else:
+        df = pd.read_csv(sys.stdin, sep='\s+', header=None)
+
+    # Process Data
+    for i, col in enumerate(col_list):
+        df['newvar' + str(i)] = dotrans(df[df.columns[col-1]], trans_list[i])
+
+    # Display the DataFrame
+    print(df.to_string(index=False, header=hasHeader))
+
