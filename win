@@ -1,14 +1,23 @@
 #!/usr/bin/python3
-
 import sys
+import io
 import pandas as pd
 import getopt
 
 
 ########################
-# Do transformation
+# UDF's            
 ########################
 
+# is_number function
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+# window functions
 def dotrans(s, trans):
 
     tran_type = trans[0]
@@ -28,7 +37,6 @@ def dotrans(s, trans):
         return(s)
 
 
-
 ########################
 # MAIN PROGRAM
 ########################
@@ -40,7 +48,7 @@ if __name__ == "__main__":
     #  Parse inputs
     trans = None
     tran_cols = None
-    hasHeader = False
+    header_opt = False
 
     argv = sys.argv[1:]
 
@@ -59,7 +67,7 @@ if __name__ == "__main__":
         elif opt in ("-t"):
             trans = arg
         elif opt in ("-g"):
-            hasHeader = True
+            header_opt = True
     
     if ( not(tran_cols) or not(trans)):
         print('must have -k and -t options')
@@ -74,16 +82,32 @@ if __name__ == "__main__":
         sys.exit(2)
 
 
-    #Read data
-    if (hasHeader):
-        df = pd.read_csv(sys.stdin, sep='\s+', header=0)
-    else:
-        df = pd.read_csv(sys.stdin, sep='\s+', header=None)
+    # Read the first line from stdin
+    first_line = sys.stdin.readline()
 
-    # Process Data
+    # Determine if there's a header
+    if header_opt:
+        header = 0
+    elif True in [is_number(x) for x in first_line.split()]:
+        header = None
+    else:
+        header = 0
+        header_opt = True
+
+    # Read the remaining content and prepend the first line
+    remaining_content = sys.stdin.read()
+    content = first_line + remaining_content
+
+    # Create a file-like buffer with the content
+    content_buffer = io.StringIO(content)
+
+    # Read the data into a DataFrame
+    df = pd.read_csv(content_buffer, sep='\s+', header=header)
+
+    # Apply window functions to selected columns
     for i, col in enumerate(col_list):
         df['newvar' + str(i)] = dotrans(df[df.columns[col-1]], trans_list[i])
 
     # Display the DataFrame
-    print(df.to_string(index=False, header=hasHeader))
+    print(df.to_string(index=False, header=header_opt))
 
