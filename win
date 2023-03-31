@@ -43,17 +43,16 @@ def dotrans(s, trans):
 if __name__ == "__main__":
 
     # Help line
-    help_line = sys.argv[0] + " -k <col1,col2,..>  -t <trans1, trans2, ..> [-g]"
+    help_line = sys.argv[0] + " -t <col1=tran1,col2=tran2,..> [-g]"
 
     #  Parse inputs
     trans = None
-    tran_cols = None
     header_opt = False
 
     argv = sys.argv[1:]
 
     try:
-        opts, args = getopt.getopt(argv,"hgk:t:")
+        opts, args = getopt.getopt(argv,"hgt:")
     except getopt.GetoptError:
         print(help_line)
         sys.exit(2)
@@ -62,23 +61,14 @@ if __name__ == "__main__":
         if opt == '-h':
             print(help_line)
             sys.exit()
-        elif opt in ("-k"):
-            tran_cols = arg
         elif opt in ("-t"):
             trans = arg
         elif opt in ("-g"):
             header_opt = True
     
-    if ( not(tran_cols) or not(trans)):
-        print('must have -k and -t options')
+    if ( trans is None):
+        print('must have -t options')
         print(help_line)
-        sys.exit(2)
-
-    col_list   = list(map(int, tran_cols.split(',')))    
-    trans_list = trans.split(',')    
-
-    if ( len(col_list) != len(trans_list)):
-        print('Number of -k arguments must match that of -t arguments')
         sys.exit(2)
 
 
@@ -105,8 +95,8 @@ if __name__ == "__main__":
     df = pd.read_csv(content_buffer, sep='\s+', header=header)
 
     # Apply window functions to selected columns
-    for i, col in enumerate(col_list):
-        df['newvar' + str(i)] = dotrans(df[df.columns[col-1]], trans_list[i])
+    for cl,tr in [x.split('=') for x in trans.split(",")]:
+        df['x'+cl+tr] = dotrans(df[df.columns[int(cl)-1]], tr)
 
     # Display the DataFrame
     print(df.to_string(index=False, header=header_opt))
