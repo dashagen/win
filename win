@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
     # Apply window functions to selected columns
     for cl,tr in [x.split('=') for x in trans.split(",")]:
-        df[df.columns[int(cl)-1]+tr] = dotrans(df[df.columns[int(cl)-1]], tr)
+        df[df.columns[int(cl)-1]+"."+tr] = dotrans(df[df.columns[int(cl)-1]], tr)
 
     # Display the DataFrame
     print(df.to_string(index=False))
