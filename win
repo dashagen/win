@@ -94,10 +94,14 @@ if __name__ == "__main__":
     # Read the data into a DataFrame
     df = pd.read_csv(content_buffer, sep='\s+', header=header)
 
+    # Add headers if there are none 
+    if header_opt is False:
+        df.columns = [ 'var' + str(i) for i in range(df.shape[1])]
+
     # Apply window functions to selected columns
     for cl,tr in [x.split('=') for x in trans.split(",")]:
-        df['x'+cl+tr] = dotrans(df[df.columns[int(cl)-1]], tr)
+        df[df.columns[int(cl)-1]+tr] = dotrans(df[df.columns[int(cl)-1]], tr)
 
     # Display the DataFrame
-    print(df.to_string(index=False, header=header_opt))
+    print(df.to_string(index=False))
 
