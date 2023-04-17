@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import sys
 import io
+import os
 import pandas as pd
 import getopt
 
@@ -43,7 +44,7 @@ def dotrans(s, trans):
 if __name__ == "__main__":
 
     # Help line
-    help_line = sys.argv[0] + " -t <col1=tran1,col2=tran2,..> [-g]"
+    help_line = os.path.basename(sys.argv[0]) + " -t <col1=tran1,col2=tran2,..> [-g]"
 
     #  Parse inputs
     trans = None
