@@ -34,6 +34,8 @@ def dotrans(s, trans):
         return(s / s.shift(tran_win))
     elif tran_type == 'g':
         return(s / s.shift(tran_win)-1)
+    elif tran_type == 'q':
+        return(s.quantile(tran_win/100))
     else:
         return(s)
 
